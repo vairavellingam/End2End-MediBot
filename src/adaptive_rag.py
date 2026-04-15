@@ -68,7 +68,7 @@ class GraphState(TypedDict):
     question: str
     generation: str
     documents: List[Document]
-    retries: int  e
+    retries: int  
 
 
 # Chain / tool builders  

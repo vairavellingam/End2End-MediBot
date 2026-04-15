@@ -1,5 +1,12 @@
-# End2End-MediBot
+# End2End-MediBot (LLM Powered Healthcare Assistant)
 A production-ready Medibot that answers medical queries in simple language, leveraging modern DevOps practices including CI/CD, Dockerization, AWS deployment, and Git-based version control.
+
+- LLM-powered medical query answering
+- Retrieval-Augmented Generation (RAG) using Pinecone
+- Fast inference using Groq LLM
+- API integration with Tavily for web search
+- End-to-end deployment using Docker and AWS
+- CI/CD pipeline with GitHub Actions
 
 # How to run?
 ### STEPS:
@@ -8,7 +15,11 @@ Clone the repository
 
 ```bash
 https://github.com/vairavellingam/End2End-MediBot.git
+
+git clone https://github.com/vairavellingam/End2End-MediBot.git
+cd End2End-MediBot
 ```
+
 
 ### STEP 01- Create a conda environment after opening the repository
 
@@ -56,11 +67,13 @@ open up localhost:
 
 - Python
 - LangChain
-- langgraph
-- langsmith
+- LangGraph
 - Flask
-- GPT
-- Pinecone
+- Pinecone (Vector DB)
+- Groq (LLM Inference)
+- Docker
+- AWS (EC2, ECR)
+- GitHub Actions (CI/CD)
 
 
 
@@ -97,8 +110,7 @@ open up localhost:
 
 	
 ## 3. Create ECR repo to store/save docker image
-    - Save the URI: 315865595366.dkr.ecr.us-east-1.amazonaws.com/medicalbot
-
+    - Save the URI: 820763418986.dkr.ecr.ap-south-1.amazonaws.com/medibot
 	
 ## 4. Create EC2 machine (Ubuntu) 
 
