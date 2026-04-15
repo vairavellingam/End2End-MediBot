@@ -23,18 +23,15 @@ from src.prompt import (
 )
 
 
-# ---------------------------------------------------------------------------
-# Shared LLM
-# ---------------------------------------------------------------------------
+# LLM
 
 def _get_llm():
-    # Updated model name to match notebook
+   
     return ChatGroq(model="openai/gpt-oss-120b", temperature=0)
 
 
-# ---------------------------------------------------------------------------
+
 # Pydantic schemas for structured outputs
-# ---------------------------------------------------------------------------
 
 class RouteQuery(BaseModel):
     """Route a user query to the most relevant datasource."""
@@ -65,20 +62,16 @@ class GradeAnswer(BaseModel):
     )
 
 
-# ---------------------------------------------------------------------------
-# Graph state — retries field added to track generation attempts
-# ---------------------------------------------------------------------------
+# Graph state 
 
 class GraphState(TypedDict):
     question: str
     generation: str
     documents: List[Document]
-    retries: int  # tracks how many generate attempts have been made
+    retries: int  e
 
 
-# ---------------------------------------------------------------------------
-# Chain / tool builders  (called once at startup, passed into the builder)
-# ---------------------------------------------------------------------------
+# Chain / tool builders  
 
 def build_adaptive_rag(retriever):
     """
@@ -117,10 +110,9 @@ def build_adaptive_rag(retriever):
     # -- Web search tool --
     web_search_tool = TavilySearchResults(k=3)
 
-    # -----------------------------------------------------------------------
+    
     # Node functions
-    # -----------------------------------------------------------------------
-
+    
     def retrieve(state: GraphState) -> GraphState:
         print("---RETRIEVE FROM PINECONE---")
         question = state["question"]
@@ -131,7 +123,6 @@ def build_adaptive_rag(retriever):
         print("---GENERATE ANSWER---")
         question = state["question"]
         documents = state["documents"]
-        # Increment retries on every generate call so grade_generation can track attempts
         retries = state.get("retries", 0) + 1
         generation = rag_chain.invoke({"context": documents, "question": question})
         print(f"  (attempt {retries})")
@@ -152,7 +143,7 @@ def build_adaptive_rag(retriever):
             score = retrieval_grader.invoke(
                 {"question": question, "document": doc.page_content}
             )
-            # Handle both Pydantic object and plain dict responses
+           
             grade = (
                 score.binary_score
                 if hasattr(score, "binary_score")
@@ -182,15 +173,14 @@ def build_adaptive_rag(retriever):
         web_doc = Document(page_content=web_content)
         return {"documents": [web_doc], "question": question}
 
-    # -----------------------------------------------------------------------
+    
     # Edge / conditional functions
-    # -----------------------------------------------------------------------
-
+   
     def route_question(state: GraphState) -> str:
         print("---ROUTING QUESTION---")
         question = state["question"]
         source = question_router.invoke({"question": question})
-        # Handle both Pydantic object and plain dict responses
+       
         datasource = (
             source.datasource
             if hasattr(source, "datasource")
@@ -217,7 +207,7 @@ def build_adaptive_rag(retriever):
         generation = state["generation"]
         retries    = state.get("retries", 0)
 
-        # Hard exit after 2 attempts — return best available answer to avoid infinite loops
+        
         if retries >= 2:
             print(f"  → Max retries ({retries}) reached, returning best answer")
             return "useful"
@@ -226,7 +216,7 @@ def build_adaptive_rag(retriever):
         docs_text = "\n\n".join(doc.page_content for doc in documents)
 
         h_score = hallucination_grader.invoke({
-            "documents": docs_text,  # plain text, not list of Document objects
+            "documents": docs_text,  
             "generation": generation,
         })
         h_grade = (
@@ -253,10 +243,9 @@ def build_adaptive_rag(retriever):
         print("  → Doesn't address question, rewriting")
         return "not useful"
 
-    # -----------------------------------------------------------------------
+   
     # Build the graph
-    # -----------------------------------------------------------------------
-
+    
     workflow = StateGraph(GraphState)
 
     workflow.add_node("web_search", web_search)

@@ -8,9 +8,8 @@ import os
 app = Flask(__name__)
 load_dotenv()
 
-# ---------------------------------------------------------------------------
+
 # Environment
-# ---------------------------------------------------------------------------
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
@@ -20,9 +19,8 @@ os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 os.environ["TAVILY_API_KEY"] = TAVILY_API_KEY
 
-# ---------------------------------------------------------------------------
+
 # Build retriever from existing Pinecone index
-# ---------------------------------------------------------------------------
 
 embeddings = download_embeddings()
 index_name = "medibot"
@@ -34,15 +32,13 @@ docsearch = PineconeVectorStore.from_existing_index(
 
 retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
-# ---------------------------------------------------------------------------
+
 # Build the Adaptive RAG LangGraph pipeline
-# ---------------------------------------------------------------------------
 
 adaptive_rag_app = build_adaptive_rag(retriever)
 
-# ---------------------------------------------------------------------------
+
 # Flask routes
-# ---------------------------------------------------------------------------
 
 @app.route("/")
 def index():
@@ -60,7 +56,7 @@ def chat():
     for output in adaptive_rag_app.stream({"question": msg, "retries": 0}):
         for node_name, node_value in output.items():
             print(f"  [Node: {node_name}]")
-            final_output = node_value  # keep updating — last one has 'generation'
+            final_output = node_value  
 
     answer = final_output.get("generation", "I'm sorry, I couldn't find an answer.")
     print(f"[MediBot]: {answer}\n")
