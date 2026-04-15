@@ -1,62 +1,71 @@
-from flask import Flask, request, jsonify,request,render_template
+from flask import Flask, request, jsonify, render_template
 from src.helper import download_embeddings
+from src.adaptive_rag import build_adaptive_rag
 from langchain_pinecone import PineconeVectorStore
-from langchain_groq import ChatGroq
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
-from src.prompt import *
 import os
 
-app=Flask(__name__)
+app = Flask(__name__)
 load_dotenv()
+
+# ---------------------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------------------
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
+os.environ["TAVILY_API_KEY"] = TAVILY_API_KEY
+
+# ---------------------------------------------------------------------------
+# Build retriever from existing Pinecone index
+# ---------------------------------------------------------------------------
 
 embeddings = download_embeddings()
-
 index_name = "medibot"
 
-# Embed each chunk and upsert the embeddings into your Pinecone index.
 docsearch = PineconeVectorStore.from_existing_index(
     index_name=index_name,
-    embedding=embeddings
+    embedding=embeddings,
 )
 
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
-chatModel=ChatGroq(model="openai/gpt-oss-120b", temperature=0.7)
-prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", system_prompt),
-        ("human", "{input}"),
-    ]
-)
+# ---------------------------------------------------------------------------
+# Build the Adaptive RAG LangGraph pipeline
+# ---------------------------------------------------------------------------
 
-question_answer_chain = create_stuff_documents_chain(chatModel, prompt)
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+adaptive_rag_app = build_adaptive_rag(retriever)
 
+# ---------------------------------------------------------------------------
+# Flask routes
+# ---------------------------------------------------------------------------
 
 @app.route("/")
 def index():
-    return render_template('chat.html')
+    return render_template("chat.html")
 
 
 @app.route("/get", methods=["GET", "POST"])
 def chat():
     msg = request.form["msg"]
-    input = msg
-    print(input)
-    response = rag_chain.invoke({"input": msg})
-    print("Response : ", response["answer"])
-    return str(response["answer"])
+    print(f"\n[User]: {msg}")
+
+    # Stream through the graph and collect the final generation
+    # retries is initialised to 0 so GraphState.retries is always defined
+    final_output = None
+    for output in adaptive_rag_app.stream({"question": msg, "retries": 0}):
+        for node_name, node_value in output.items():
+            print(f"  [Node: {node_name}]")
+            final_output = node_value  # keep updating — last one has 'generation'
+
+    answer = final_output.get("generation", "I'm sorry, I couldn't find an answer.")
+    print(f"[MediBot]: {answer}\n")
+    return str(answer)
 
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port= 8080, debug= True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080, debug=True)
