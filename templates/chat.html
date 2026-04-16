@@ -1,81 +1,184 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
 <!DOCTYPE html>
-<html>
-	<head>
-		<title>Chatbot</title>
-		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}"/>
-	</head>
-	
-	
-	<body>
-		<div class="container-fluid h-100">
-			<div class="row justify-content-center h-100">		
-				<div class="col-md-8 col-xl-6 chat">
-					<div class="card">
-						<div class="card-header msg_head">
-							<div class="d-flex bd-highlight">
-								<div class="img_cont">
-									<img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img">
-									<!-- <img src="https://www.prdistribution.com/spirit/uploads/pressreleases/2019/newsreleases/d83341deb75c4c4f6b113f27b1e42cd8-chatbot-florence-already-helps-thousands-of-patients-to-remember-their-medication.png" class="rounded-circle user_img"> -->
-									<span class="online_icon"></span>
-								</div>
-								<div class="user_info">
-									<span>Medibot</span>
-									<p>Ask me anything!</p>
-								</div>
-							</div>
-						</div>
-						<div id="messageFormeight" class="card-body msg_card_body">
-							
-							
-						</div>
-						<div class="card-footer">
-							<form id="messageArea" class="input-group">
-                                <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
-								<div class="input-group-append">
-									<button type="submit" id="send" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></button>
-								</div>
-							</form>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<script>
-			$(document).ready(function() {
-				$("#messageArea").on("submit", function(event) {
-					const date = new Date();
-					const hour = date.getHours();
-					const minute = date.getMinutes();
-					const str_time = hour+":"+minute;
-					var rawText = $("#text").val();
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediBot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
 
-					var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span></div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
-					
-					$("#text").val("");
-					$("#messageFormeight").append(userHtml);
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
 
-					$.ajax({
-						data: {
-							msg: rawText,	
-						},
-						type: "POST",
-						url: "/get",
-					}).done(function(data) {
-						var botHtml = '<div class="d-flex justify-content-start mb-4"><div class="img_cont_msg"><img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + data + '<span class="msg_time">' + str_time + '</span></div></div>';
-						$("#messageFormeight").append($.parseHTML(botHtml));
-					});
-					event.preventDefault();
-				});
-			});
-		</script>
-        
-    </body>
+  <div class="chat-wrap">
+
+    <!-- Header -->
+    <header class="chat-header">
+      <div class="header-brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="28" height="28" rx="8" fill="url(#lg)"/>
+            <path d="M14 7v14M7 14h14" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="lg" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#2dd4bf"/><stop offset="1" stop-color="#0ea5e9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-name">MediBot</h1>
+          <p class="brand-sub"><span class="online-dot"></span>Online</p>
+        </div>
+      </div>
+      <button class="clear-btn" id="clearBtn" title="Clear chat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Messages -->
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcome">
+        <div class="welcome-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="14" fill="url(#wg)"/>
+            <path d="M24 10v28M10 24h28" stroke="white" stroke-width="4" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="wg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#2dd4bf"/><stop offset="1" stop-color="#0ea5e9"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h2>Hi, I'm MediBot</h2>
+        <p>Ask me anything about symptoms, treatments, medications, or general health.</p>
+        <div class="chips">
+          <button class="chip">Symptoms of diabetes?</button>
+          <button class="chip">How does ibuprofen work?</button>
+          <button class="chip">What is hypertension?</button>
+          <button class="chip">Explain the immune system</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-box">
+        <textarea id="userInput" placeholder="Ask a medical question…" rows="1"></textarea>
+        <button class="send-btn" id="sendBtn" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+      <p class="disclaimer">For informational use only. Always consult a licensed physician.</p>
+    </div>
+
+  </div>
+
+  <script>
+    const $msgs   = $("#messages");
+    const $input  = $("#userInput");
+    const $send   = $("#sendBtn");
+
+    $input.on("input", function () {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 130) + "px";
+      $send.prop("disabled", this.value.trim() === "");
+    });
+
+    $input.on("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!$send.prop("disabled")) send(); }
+    });
+
+    $send.on("click", send);
+
+    $(document).on("click", ".chip", function () {
+      $input.val($(this).text()).trigger("input").focus();
+    });
+
+    $("#clearBtn").on("click", function () {
+      $msgs.find(".msg-row").remove();
+      $("#welcome").show();
+    });
+
+    function time() {
+      const d = new Date();
+      return String(d.getHours()).padStart(2,'0') + ":" + String(d.getMinutes()).padStart(2,'0');
+    }
+
+    function esc(t) {
+      return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+    }
+
+    function send() {
+      const text = $input.val().trim();
+      if (!text) return;
+      $("#welcome").hide();
+
+      $msgs.append(`
+        <div class="msg-row user-row">
+          <div class="bubble user-bubble">${esc(text)}<span class="btime">${time()}</span></div>
+        </div>`);
+
+      $input.val("").css("height","auto");
+      $send.prop("disabled", true);
+      scrollDown();
+
+      const tid = "t" + Date.now();
+      $msgs.append(`
+        <div class="msg-row bot-row" id="${tid}">
+          <div class="avatar-sm">
+            <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#ag${tid})"/>
+            <path d="M14 7v14M7 14h14" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <defs><linearGradient id="ag${tid}" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#2dd4bf"/><stop offset="1" stop-color="#0ea5e9"/>
+            </linearGradient></defs></svg>
+          </div>
+          <div class="bubble bot-bubble thinking">
+            <span></span><span></span><span></span>
+          </div>
+        </div>`);
+      scrollDown();
+
+      $.ajax({ type:"POST", url:"/get", data:{msg:text},
+        success: function(data) {
+          $(`#${tid}`).replaceWith(`
+            <div class="msg-row bot-row">
+              <div class="avatar-sm">
+                <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="url(#bg${tid})"/>
+                <path d="M14 7v14M7 14h14" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                <defs><linearGradient id="bg${tid}" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#2dd4bf"/><stop offset="1" stop-color="#0ea5e9"/>
+                </linearGradient></defs></svg>
+              </div>
+              <div class="bubble bot-bubble">${data}<span class="btime">${time()}</span></div>
+            </div>`);
+          scrollDown();
+        },
+        error: function() {
+          $(`#${tid}`).replaceWith(`
+            <div class="msg-row bot-row">
+              <div class="bubble bot-bubble err">⚠️ Something went wrong. Please try again.</div>
+            </div>`);
+          scrollDown();
+        }
+      });
+    }
+
+    function scrollDown() {
+      $msgs.animate({ scrollTop: $msgs[0].scrollHeight }, 280);
+    }
+  </script>
+</body>
 </html>
