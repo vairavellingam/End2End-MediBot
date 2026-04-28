@@ -8,7 +8,7 @@ on:
 jobs:
  
   # JOB 1 — Build & push image to ECR
-   Continuous-Integration:
+  Continuous-Integration:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +38,7 @@ jobs:
   
   # JOB 2 — Pull & run on EC2 (self-hosted)
   
-   Continuous-Deployment:
+  Continuous-Deployment:
     needs: Continuous-Integration
     runs-on: self-hosted
 
