@@ -1,4 +1,4 @@
-name: Deploy MediBot to EC2
+name: Deploy MediBot to EC2 Machine
 
 on:
   push:
@@ -6,10 +6,9 @@ on:
       - main
 
 jobs:
-  # ──────────────────────────────────────────
+ 
   # JOB 1 — Build & push image to ECR
-  # ──────────────────────────────────────────
-  Continuous-Integration:
+   Continuous-Integration:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,10 +35,10 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  # ──────────────────────────────────────────
+  
   # JOB 2 — Pull & run on EC2 (self-hosted)
-  # ──────────────────────────────────────────
-  Continuous-Deployment:
+  
+   Continuous-Deployment:
     needs: Continuous-Integration
     runs-on: self-hosted
 
