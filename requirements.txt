@@ -1,3 +1,8 @@
+# CPU-only torch — avoids downloading 2GB CUDA build (EC2 has no GPU)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+
+# LangChain 
 langchain>=0.3.15
 langchain-core>=0.3.31
 langchain-community>=0.3.15
@@ -8,7 +13,7 @@ langchain_huggingface>=0.1.0
 # Vector DB
 pinecone==5.4.0
 
-
+# Groq + httpx 
 groq==0.11.0
 httpx==0.27.2
 
@@ -21,7 +26,7 @@ langsmith>=0.1.100
 flask==3.1.1
 gunicorn
 
-# ML / embeddings
+# Embeddings
 sentence-transformers==2.7.0
 pypdf==5.6.1
 
