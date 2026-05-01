@@ -53,7 +53,7 @@ def chat():
     # Stream through the graph and collect the final generation
     # retries is initialised to 0 so GraphState.retries is always defined
     final_output = None
-    for output in adaptive_rag_app.stream({"question": msg, "retries": 0}):
+    for output in adaptive_rag_app.stream({"question": msg, "retries": 0, "rewrite_count": 0}):
         for node_name, node_value in output.items():
             print(f"  [Node: {node_name}]")
             final_output = node_value  

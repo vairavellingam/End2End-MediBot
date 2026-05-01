@@ -39,6 +39,7 @@ medical reference book or encyclopedia.
 Route to 'web_search' for:
 - Very recent medical news, drug approvals, or clinical trial results
 - Non-medical questions
+- Health topic that may not be in the medical reference (e.g. sexual health, lifestyle questions, mental health, emerging treatments)
 - Questions about specific doctors, hospitals, or clinics
 
 Return ONLY the routing decision — no explanation.""",
@@ -61,8 +62,12 @@ to a user question.
 If the document contains keywords or semantic meaning related to the question,
 grade it as relevant. This does not need to be a strict test — the goal is to
 filter out clearly irrelevant retrievals.
-
-Respond with binary score 'yes' or 'no'.""",
+Return your answer ONLY as a JSON object with this format:
+{{
+  "binary_score": "yes" or "no"
+}}
+Do not explain anything.
+""",
         ),
         (
             "human",

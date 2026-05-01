@@ -27,7 +27,7 @@ from src.prompt import (
 
 def _get_llm():
    
-    return ChatGroq(model="openai/gpt-oss-120b", temperature=0)
+    return ChatGroq(model="llama-3.1-8b-instant", temperature=0)
 
 
 
@@ -37,7 +37,7 @@ class RouteQuery(BaseModel):
     """Route a user query to the most relevant datasource."""
     datasource: Literal["vectorstore", "web_search"] = Field(
         description="Route to 'vectorstore' for medical knowledge base queries, "
-                    "'web_search' for recent events or out-of-scope questions."
+                    "'web_search' for recent events or out-of-scope questions or questions which are not covered by the medical knowledge base."
     )
 
 
@@ -64,11 +64,14 @@ class GradeAnswer(BaseModel):
 
 # Graph state 
 
+MAX_REWRITES = 2  
+
 class GraphState(TypedDict):
-    question: str
-    generation: str
-    documents: List[Document]
-    retries: int  
+    question:      str
+    generation:    str
+    documents:     List[Document]
+    retries:       int
+    rewrite_count: int 
 
 
 # Chain / tool builders  
@@ -161,9 +164,10 @@ def build_adaptive_rag(retriever):
         print("---REWRITING QUERY---")
         question = state["question"]
         documents = state["documents"]
+        rewrite_count = state.get("rewrite_count", 0)
         better_question = question_rewriter.invoke({"question": question})
         print(f"  Rewritten: {better_question}")
-        return {"documents": documents, "question": better_question}
+        return {"documents": documents, "question": better_question,"rewrite_count": rewrite_count + 1}
 
     def web_search(state: GraphState) -> GraphState:
         print("---WEB SEARCH FALLBACK---")
@@ -194,8 +198,12 @@ def build_adaptive_rag(retriever):
 
     def decide_to_generate(state: GraphState) -> str:
         print("---DECIDING: GENERATE OR REWRITE?---")
+        rewrite_count = state.get("rewrite_count", 0)
         if not state["documents"]:
-            print("  → No relevant docs found, rewriting query")
+            if rewrite_count >= MAX_REWRITES:
+                print(f"  → {rewrite_count} rewrites exhausted, falling back to web search")
+                return "web_search"
+            print(f"  → No relevant docs, rewriting query (attempt {rewrite_count + 1}/{MAX_REWRITES})")
             return "transform_query"
         print("  → Relevant docs found, generating")
         return "generate"
@@ -268,12 +276,12 @@ def build_adaptive_rag(retriever):
     workflow.add_edge("retrieve", "grade_documents")
 
     workflow.add_conditional_edges(
-        "grade_documents",
-        decide_to_generate,
-        {
-            "transform_query": "transform_query",
-            "generate": "generate",
-        },
+    "grade_documents", decide_to_generate,
+    {
+        "transform_query": "transform_query",
+        "generate":        "generate",
+        "web_search":      "web_search",      
+    },
     )
 
     workflow.add_edge("transform_query", "retrieve")
